@@ -99,7 +99,7 @@ public class FeatureServiceIMPL implements FeatureService{
     }
 
     public boolean hasFailedFeatureName(String featurename){
-        if(featurename == null || featurename.length() > 255) {return true;}
+        if(featurename == null || featurename.isEmpty() || featurename.trim().isEmpty() || featurename.length() > 255) {return true;}
 
         return false;
     }
