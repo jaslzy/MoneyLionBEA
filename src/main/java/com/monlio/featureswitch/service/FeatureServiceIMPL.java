@@ -18,9 +18,6 @@ import com.monlio.featureswitch.repository.FeatureRepo;
 @Service
 public class FeatureServiceIMPL implements FeatureService{
 
-    // final private static Long defaultID = -1L; // This means -1
-    // private Long idOfRecord = defaultID; 
-
     @Autowired
     private FeatureRepo featureRepo;
 
@@ -55,25 +52,19 @@ public class FeatureServiceIMPL implements FeatureService{
             featureDTO.getCanAccess()
         );
 
-        // If true, then (to update the existing record): we shall retrieve and reuse the same id, instead of do nothing and end up with duplicate "email and featurename".
-        // if false, then we shall do nothing (meaning we create a new record). 
         Optional<Feature> hasRecord = featureRepo.getExistingRecord(featureDTO.getUserEmail(),featureDTO.getFeatureName());
         boolean isExisting = (hasRecord.isPresent());
+        // If isExisting is true, then (to update the existing record): we shall retrieve and reuse the same id, instead of do nothing and end up with duplicate "email and featurename".
+        // if isExisting is false, then we shall do nothing (meaning we create a new record). 
         if (isExisting){
             Long id = hasRecord.get().getId();
             feature.setID(id);
         }
-        /*if(isExisting(featureDTO.getUserEmail(),featureDTO.getFeatureName())){
-            Long id = featureRepo.getIDofRecord(featureDTO.getUserEmail(),featureDTO.getFeatureName());
-            feature.setID(id);
-        }
-        */
 
         Feature savedFeature = featureRepo.save(feature);
         
         boolean hasDBUpdateSucceed = (savedFeature.getId() != null);
         return hasDBUpdateSucceed;
-       
     }
 
     public boolean hasFailed_AddOrUpdate_Checks(FeatureDTO featureDTO){

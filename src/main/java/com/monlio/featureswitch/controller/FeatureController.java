@@ -27,12 +27,6 @@ public class FeatureController {
         public String test() {
             return "Greetings from Spring Boot";
         }
-    
-        @GetMapping("/hi")
-        public String test1() {
-            return "hi";
-        }
-    
         
         @PostMapping("/feature")
         public ResponseEntity<String> add_UserWithFeature(@RequestBody FeatureDTO request) {

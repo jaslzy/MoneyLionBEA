@@ -2,36 +2,24 @@ package com.monlio.featureswitch.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.aspectj.lang.annotation.Before;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest //@WebMvcTest(FeatureController.class)
-@AutoConfigureMockMvc
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SpringBootTest 
+@AutoConfigureMockMvc 
 public class FeatureControllerTest {
-    //private boolean hasPostAndGetFeatureYetToRunOnce = true;
-    //private boolean hasGetFeatureYetToRunOnce = true;
-    //private boolean hasPostFeatureYetToRunOnce = true;
 
     @Autowired
     private MockMvc mockMvc;
@@ -39,25 +27,11 @@ public class FeatureControllerTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    //@BeforeEach // Jasper - this runs after "each row of @CsvSource {instead of, only once for entire @CsvSource}"
+    //@BeforeEach // Jasper - this runs "before each row of @CsvSource {instead of, only once for entire @CsvSource}" or "for all @tests method {instead of, for specific @tests method that i would like}"
     public void setupDatabase() {
         jdbcTemplate.execute("DELETE FROM moneylion.feature");
-      
-        /* if (Thread.currentThread().getStackTrace()[2].getMethodName().equals("testGetFeature")) {
-            // Code to run before addTwoRows sql
-        }
-        */
     }
 
-    /*
-    @AfterAll
-    @Rollback // Rollback transactions after all tests have been executed
-    public void rollbackTransaction() {
-        // If using Spring TestContext framework, you may not need to provide any rollback logic here
-    }
-    */
-
-    
     private int countRowsInFeatureTable() {
         Integer output = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM moneylion.feature", Integer.class);
 
@@ -67,16 +41,8 @@ public class FeatureControllerTest {
     }
 
     
-   
     @Transactional
     @Rollback
-    /*@CsvSource({
-        "true,0,example@gmail.com,exampleFeature",
-        "false,1,trolo@gmail.com,exampleFeature",
-        "false,2,qwer@gmail.com,feature",
-        "false,3,qwe@gmail.com,feature",
-        "false,4,jkw@gmail.com,feature"
-    })*/
     @Test
     public void testPostAndGetFeature() throws Exception{
         Object[][] csvData = {
@@ -108,7 +74,8 @@ public class FeatureControllerTest {
             String strContent = "{\"useremail\": \"" + email + "\", \"featurename\": \"" + featureName + "\", \"canAccess\": " + true + "}";
             mockMvc.perform(MockMvcRequestBuilders.post("/feature")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(strContent));
+                    .content(strContent))
+                    .andExpect(MockMvcResultMatchers.status().is(200));
     
              String strExpected_Final = "{ \"canAccess\": " + true + " }";
              mockMvc.perform(MockMvcRequestBuilders.get("/feature")
@@ -157,12 +124,12 @@ public class FeatureControllerTest {
             "example, exampleFeature, true, 304",
             "example@gmailcom, exampleFeature, true, 304",
             "example@gmailcom., exampleFeature, true, 304",
-            "C8SAb1CSoKsojAiQTYqBMtRXWIZLQ3s7gUfogTihcNIUlgc5MsHtQASTOnPWlBZ0FW1CYCm2x9ktqDZni47GO9kWtrWnUlHoTpgVHNFHoSjkn90AHFfDl5B6j0Yq4GWc3eq0TapKwW0WP0NocB9Igf4ZtKYShCPlgN6XGLjg0cFJmd4oN6sUWTVKDqe6AxjNPpuXuBho4gVQ766yQlVY1K0aSkuFjVGPDHDj16ZvK3nZ707RnzOnSC@gmail.com, exampleFeature, true, 304",
+            "C8SAb1CSoKsojAiQTYqBMtRXWIZLQ3s7gUfogTihcNIUlgc5MsHtQASTOnPWlBZ0FW1CYCm2x9ktqDZni47GO9kWtrWnUlHoTpgVHNFHoSjkn90AHFfDl5B6j0Yq4GWc3eq0TapKwW0WP0NocB9Igf4ZtKYShCPlgN6XGLjg0cFJmd4oN6sUWTVKDqe6AxjNPpuXuBho4gVQ766yQlVY1K0aSkuFjVGPDHDj16ZvK3nZ707RnzOnSC@gmail.com, exampleFeature, true, 304", //this email as 256 char, whereas mysql only allow 255 char
             
             "example@gmail.com, , true, 304", // featurename is null
             "example@gmail.com, '', true, 304", // featurename is empty string
             "example@gmail.com, '   ', true, 304", //featurename only contains white space char
-            "example@gmail.com, C8SAb1CSoKsojAiQTYqBMtRXWIZLQ3s7gUfogTihcNIUlgc5MsHtQASTOnPWlBZ0FW1CYCm2x9ktqDZni47GO9kWtrWnUlHoTpgVHNFHoSjkn90AHFfDl5B6j0Yq4GWc3eq0TapKwW0WP0NocB9Igf4ZtKYShCPlgN6XGLjg0cFJmd4oN6sUWTVKDqe6AxjNPpuXuBho4gVQ766yQlVY1K0aSkuFjVGPDHDj16ZvK3nZ707RnzOnSCovljoacTox, true, 304",
+            "example@gmail.com, C8SAb1CSoKsojAiQTYqBMtRXWIZLQ3s7gUfogTihcNIUlgc5MsHtQASTOnPWlBZ0FW1CYCm2x9ktqDZni47GO9kWtrWnUlHoTpgVHNFHoSjkn90AHFfDl5B6j0Yq4GWc3eq0TapKwW0WP0NocB9Igf4ZtKYShCPlgN6XGLjg0cFJmd4oN6sUWTVKDqe6AxjNPpuXuBho4gVQ766yQlVY1K0aSkuFjVGPDHDj16ZvK3nZ707RnzOnSCovljoacTox, true, 304", //this feature has 256 char, whereas mysql only allow 255 char
 
             "example@gmail.com, exampleFeature, , 304" // canAccess is null
     })
